@@ -1,0 +1,998 @@
+<!-- include Vue 2.x -->
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<link rel="stylesheet" type="text/css" href="ui.css">
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .input {
+        background: #FFFFFF;
+        border: none;
+        box-shadow: inset 0 0 0 1px #E5E5E5;
+        box-sizing: border-box;
+        border-radius: 2px;
+        padding: 0 10px;
+        color: rgba(0, 0, 0, 0.85);
+        font-size: 12px;
+        line-height: 18px;
+        transition: box-shadow 100ms ease;
+    }
+
+    .input:hover {
+        border: none;
+        border-radius: 2px;
+        box-shadow: inset 0 0 0 2px #24A0FB;
+    }
+
+    .input:focus {
+        border: none;
+        border-radius: 2px;
+        box-shadow: inset 0 0 0 2px #24A0FB;
+    }
+
+    .button {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        padding: 6px 16px;
+        border-radius: 2px;
+        font-size: 12px;
+        line-height: 18px;
+        border: none;
+        transition: all 100ms ease;
+        user-select: none;
+        cursor: pointer;
+    }
+
+    .button-primary {
+        background: #18A0FB;
+        color: #FFF;
+    }
+
+    .button-primary:hover {
+        background: #0677bd;
+    }
+
+    .button-secondary {
+        background: #FFF;
+        color: rgba(0, 0, 0, .85);
+        box-shadow: inset 0 0 0 1px #E5E5E5;
+    }
+
+    .button-secondary:hover {
+        background: #FFF;
+        color: #18A0FB;
+        box-shadow: inset 0 0 0 1px #18A0FB;
+    }
+
+    #app>div {
+        width: 100%;
+        height: 100%;
+    }
+
+    .current-select {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 99;
+
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 0;
+
+        background: #EDEDED;
+        border-bottom: 1px #E0E0E0 solid;
+    }
+
+    .main {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+
+        flex: none;
+        order: 2;
+        align-self: stretch;
+        flex-grow: 1;
+        padding: 46px 12px 58px;
+
+        overflow: auto;
+    }
+
+    .footer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 99;
+
+        /* Auto layout */
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+
+        background: rgba(255, 255, 255, .8);
+        backdrop-filter: blur(16px);
+
+        border-top: 1px #E0E0E0 solid;
+    }
+
+    .loading {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background: white;
+        z-index: 999;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        margin-top: 35px;
+        font-size: 14px;
+        color: rgba(0, 0, 0, .65);
+    }
+
+    .loading svg {
+        animation: always-rotating 2s linear infinite;
+        flex: none;
+        order: 0;
+        flex-grow: 0;
+    }
+
+    @keyframes always-rotating {
+        100% {
+            transform: rotate(360deg)
+        }
+    }
+
+    .empty {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background: white;
+        z-index: 999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        margin-top: 35px;
+        font-size: 14px;
+        color: rgba(0, 0, 0, .65);
+    }
+
+    /* ============ */
+
+    .settings {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px;
+        color: rgba(0, 0, 0, 0.85);
+        width: 100%;
+    }
+
+    .settings>div {
+        flex: none;
+        align-self: stretch;
+        flex-grow: 0;
+        margin-bottom: 16px;
+    }
+
+    .settings h2 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 18px;
+        line-height: 25px;
+    }
+
+    .settings .sub-title {
+        color: rgba(0, 0, 0, 0.65) !important;
+    }
+
+    .settings p {
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .settings .input-area {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0px 0px 8px;
+    }
+
+    .settings .input {
+        flex: none;
+        height: 30px;
+        font-size: 14px;
+        line-height: 30px;
+        flex-grow: 0;
+        width: 100%;
+        margin-top: 4px;
+        margin-bottom: 16px;
+    }
+
+    .button-group {
+        /* Auto layout */
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        padding: 0;
+    }
+
+    .button-group .button {
+        flex: none;
+        order: 0;
+        flex-grow: 0;
+        margin-right: 8px;
+    }
+
+    .current-select div {
+        flex: none;
+        order: 0;
+        flex-grow: 1;
+        margin: 0 0;
+    }
+
+    .current-select .current-select-name {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 8px 12px 8px;
+
+        flex-grow: 1;
+
+        font-size: 12px;
+        line-height: 17px;
+    }
+
+    .current-select .current-select-name svg {
+        flex: none;
+        order: 0;
+        flex-grow: 0;
+        margin: 0 4px 0 0;
+    }
+
+    .current-select .current-select-name p {
+        flex: none;
+        order: 1;
+        flex-grow: 1;
+        margin: 0;
+        user-select: none;
+        text-overflow: ellipsis;
+    }
+
+    .current-select button {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        padding: 10px;
+        flex-grow: 0;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: background-color 100ms ease;
+    }
+
+    .current-select button:hover {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .title {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #E0E0E0;
+
+        flex: none;
+        order: 0;
+        align-self: stretch;
+        flex-grow: 0;
+    }
+
+    .title svg {
+        margin-right: 8px;
+        transition: background-color 100ms ease;
+        border-radius: 2px;
+    }
+
+    .title svg:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .title .input {
+        font-size: 14px;
+        line-height: 20px;
+        height: 30px;
+        flex: none;
+        order: 1;
+        flex-grow: 1;
+    }
+
+    .tree {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0;
+
+        flex: none;
+        order: 2;
+        align-self: stretch;
+        flex-grow: 0;
+        margin: 8px 0;
+
+        user-select: none;
+    }
+
+    .tree ul {
+        /* Auto layout */
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0;
+        margin: 4px 0 0 0;
+        /* Inside auto layout */
+        flex: none;
+        order: 0;
+        align-self: stretch;
+        flex-grow: 0;
+    }
+
+    .tree ul>div {
+        font-weight: 600;
+        font-size: 14px;
+        line-height: 22px;
+
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 4px 6px 8px;
+
+        flex: none;
+        order: 0;
+        align-self: stretch;
+        flex-grow: 0;
+        margin: 0 0;
+
+        transition: background-color 100ms ease;
+    }
+
+    .tree ul>div:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        border-radius: 3px;
+    }
+
+    .tree ul>div .icon-fold {
+        transition: transform 100ms ease;
+        flex: none;
+        order: 0;
+        flex-grow: 0;
+        margin-right: 4px;
+    }
+
+    .tree ul>div .icon-add {
+        flex: none;
+        order: 2;
+        flex-grow: 0;
+        padding: 4px;
+        transition: background-color 100ms ease;
+        cursor: pointer;
+    }
+
+    .tree ul>div .icon-add:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .tree ul>div>span {
+        /* Auto layout */
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 0;
+
+        flex: none;
+        order: 1;
+        flex-grow: 1;
+
+        font-weight: 600;
+    }
+
+    .tree ul .tag-name {
+        /* Inside auto layout */
+        flex: none;
+        order: 0;
+        flex-grow: 0;
+        margin-right: 4px;
+    }
+
+    .tree .counter {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 0 1px;
+        font-weight: 600;
+        font-size: 12px;
+        line-height: 18px;
+        color: rgba(0, 0, 0, 0.85);
+        background: rgba(0, 0, 0, 0.06);
+        border-radius: 16px;
+        min-width: 18px;
+    }
+
+    .rotate-0 {
+        transform: rotate(0deg);
+    }
+
+    .rotate-90 {
+        transform: rotate(90deg);
+    }
+
+    .tree li {
+        /* Auto layout */
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px 8px 5px 24px;
+        /* Inside auto layout */
+        flex: none;
+        order: 1;
+        align-self: stretch;
+        flex-grow: 0;
+        margin: 0 0;
+
+        transition: background-color 100ms ease;
+        border-radius: 3px;
+    }
+
+    .tree li:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .li-selected {
+        background-color: #FAFAFA;
+        border-radius: 0;
+    }
+
+    .tree li .tag {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 0 8px;
+        /* Inside auto layout */
+        flex: none;
+        order: 0;
+        flex-grow: 0;
+        margin: 0 2px;
+
+        border-radius: 3px;
+        background-color: #E3E2E0;
+
+        color: rgba(0, 0, 0, .85);
+        font-size: 12px;
+        line-height: 18px;
+    }
+
+    .tag-adding {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 5px 2px 5px 24px;
+    }
+
+    .tag-adding .input {
+        flex: none;
+        order: 0;
+        flex-grow: 1;
+        margin: 0;
+        height: 26px;
+        font-size: 12px;
+        line-height: 18px;
+    }
+
+    .tag-adding .button {
+        flex: none;
+        flex-grow: 0;
+        margin-left: 4px;
+        padding: 6px;
+        height: 26px;
+    }
+
+    /* TAGS */
+    .tag-default {
+        background-color: rgba(227, 226, 224, 0.5) !important;
+        color: rgb(50, 48, 44) !important;
+    }
+    .tag-gray {
+        background-color: rgb(227, 226, 224) !important;
+        color: rgb(50, 48, 44) !important;
+    }
+    .tag-brown {
+        background-color: rgb(238, 224, 218) !important;
+        color: rgb(68, 42, 30) !important;
+    }
+    .tag-orange {
+        background-color: rgb(250, 222, 201) !important;
+        color: rgb(73, 41, 14) !important;
+    }
+    .tag-yellow {
+        background-color: rgb(253, 236, 200) !important;
+        color: rgb(64, 44, 27) !important;
+    }
+    .tag-green {
+        background-color: rgb(219, 237, 219) !important;
+        color: rgb(28, 56, 41) !important;
+    }
+    .tag-blue {
+        background-color: rgb(211, 229, 239) !important;
+        color: rgb(24, 51, 71) !important;
+    }
+    .tag-purple {
+        background-color: rgb(232, 222, 238) !important;
+        color: rgb(65, 36, 84) !important;
+    }
+    .tag-pink {
+        background-color: rgb(245, 224, 233) !important;
+        color: rgb(76, 35, 55) !important;
+    }
+    .tag-red {
+        background-color: rgb(255, 226, 221) !important;
+        color: rgb(93, 23, 21) !important;
+    }
+
+</style>
+
+<div id="app">
+    <div class="settings" v-if="show_tokens_setting">
+        <div>
+            <h2>Set tokens</h2>
+            <p class="sub-title">Please input these tokens first.</p>
+        </div>
+        <div class="input-area">
+            <p>Figma token:</p>
+            <input class="input" v-model="tokens.figma_token">
+            <p>Notion token:</p>
+            <input class="input" v-model="tokens.notion_token">
+            <p>Notion database:</p>
+            <input class="input" v-model="tokens.notion_database">
+        </div>
+        <div class="button-group" style="margin-top: 24px">
+            <button class="button button-primary" v-on:click="saveTokens">Save</button>
+            <button class="button button-secondary" v-if="tokens_inited" v-on:click="tokensCancel">Cancel</button>
+            <button class="button button-secondary" v-on:click="testClearLocalStorge">Clear</button>
+        </div>
+    </div>
+    <div v-if="!show_tokens_setting">
+        <div class="current-select">
+            <div class="current-select-name">
+                <svg v-show="!figma_node.frame" width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_147_100)">
+                        <path d="M12.0888 4.50804L9.20667 1.62589C9.12631 1.54554 9.01783 1.5 8.90399 1.5H3.2147C2.97765 1.5 2.78613 1.69152 2.78613 1.92857V13.0714C2.78613 13.3085 2.97765 13.5 3.2147 13.5H11.7861C12.0232 13.5 12.2147 13.3085 12.2147 13.0714V4.81205C12.2147 4.69821 12.1692 4.58839 12.0888 4.50804ZM11.2263 5.00893H8.70578V2.48839L11.2263 5.00893ZM11.2504 12.5357H3.75042V2.46429H7.79506V5.35714C7.79506 5.50633 7.85433 5.6494 7.95981 5.75489C8.0653 5.86038 8.20838 5.91964 8.35756 5.91964H11.2504V12.5357Z" fill="black" fill-opacity="0.85"/>
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_147_100">
+                            <rect width="12" height="12" fill="white" transform="translate(1.5 1.5)"/>
+                        </clipPath>
+                    </defs>
+                </svg>
+                <svg v-show="figma_node.frame" width="15" height="15" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1.5 5H12.5V4H1.5V5Z" fill="#333333"/>
+                    <path d="M1.5 10H12.5V9H1.5V10Z" fill="#333333"/>
+                    <path d="M4 1.5V12.5H5V1.5H4Z" fill="#333333"/>
+                    <path d="M9 1.5V12.5H10V1.5H9Z" fill="#333333"/>
+                </svg>
+                <p> {{ figma_node ? figma_node.name : '...' }} </p>
+            </div>
+            <button v-on:click="refresh" class="current-select-icon">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13.2048 2.27031L12.3236 2.95938C11.122 1.42344 9.25325 0.4375 7.15482 0.4375C3.53138 0.4375 0.598565 3.36719 0.593878 6.99219C0.58919 10.6203 3.52825 13.5625 7.15482 13.5625C9.98763 13.5625 12.4017 11.7656 13.3204 9.24844C13.3439 9.18281 13.3095 9.10938 13.2439 9.0875L12.3579 8.78281C12.3271 8.77223 12.2932 8.77415 12.2638 8.78816C12.2343 8.80218 12.2114 8.82718 12.2001 8.85781C12.172 8.93594 12.1408 9.01406 12.1079 9.09063C11.8376 9.73125 11.4501 10.3063 10.9564 10.8C10.4666 11.2907 9.88673 11.6822 9.24857 11.9531C8.58763 12.2328 7.88294 12.375 7.15794 12.375C6.43138 12.375 5.72825 12.2328 5.06731 11.9531C4.42853 11.6834 3.84844 11.2917 3.3595 10.8C2.86841 10.3103 2.47729 9.72972 2.20794 9.09063C1.92825 8.42813 1.78607 7.725 1.78607 6.99844C1.78607 6.27188 1.92825 5.56875 2.20794 4.90625C2.47825 4.26563 2.86575 3.69063 3.3595 3.19688C3.85325 2.70313 4.42825 2.31563 5.06731 2.04375C5.72825 1.76406 6.43294 1.62188 7.15794 1.62188C7.8845 1.62188 8.58763 1.76406 9.24857 2.04375C9.88735 2.31351 10.4674 2.70519 10.9564 3.19688C11.1111 3.35156 11.2564 3.51563 11.3908 3.6875L10.4501 4.42188C10.4315 4.43627 10.4173 4.45563 10.4092 4.47772C10.4011 4.49981 10.3995 4.52374 10.4043 4.54676C10.4092 4.56977 10.4205 4.59094 10.4369 4.60782C10.4533 4.6247 10.4741 4.63661 10.497 4.64219L13.2408 5.31406C13.3189 5.33281 13.3954 5.27344 13.3954 5.19375L13.4079 2.36719C13.4064 2.26406 13.2861 2.20625 13.2048 2.27031V2.27031Z" fill="black" fill-opacity="0.85"/>
+                </svg>
+            </button>
+            <button v-on:click="show_tokens_setting=true" class="current-select-icon" style="border-left: 1px #E0E0E0 solid">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_132_42)">
+                        <path d="M13.4498 8.77885L12.4264 7.90385C12.4748 7.60697 12.4998 7.30384 12.4998 7.00072C12.4998 6.6976 12.4748 6.39447 12.4264 6.0976L13.4498 5.2226C13.527 5.15651 13.5823 5.06849 13.6082 4.97025C13.6342 4.872 13.6296 4.76818 13.5951 4.6726L13.5811 4.63197C13.2993 3.84451 12.8774 3.11453 12.3358 2.47728L12.3076 2.44447C12.2419 2.36721 12.1544 2.31167 12.0565 2.28517C11.9586 2.25867 11.8549 2.26246 11.7592 2.29603L10.4889 2.7476C10.0201 2.36322 9.49671 2.0601 8.93108 1.8476L8.68577 0.51947C8.66726 0.419536 8.61879 0.327599 8.54678 0.255873C8.47478 0.184147 8.38265 0.136028 8.28265 0.117908L8.24046 0.110095C7.4264 -0.0367798 6.57015 -0.0367798 5.75608 0.110095L5.7139 0.117908C5.61389 0.136028 5.52177 0.184147 5.44976 0.255873C5.37776 0.327599 5.32928 0.419536 5.31077 0.51947L5.0639 1.85385C4.50278 2.06639 3.98025 2.36935 3.51702 2.75072L2.23733 2.29603C2.14165 2.26219 2.03794 2.25827 1.93998 2.28478C1.84202 2.3113 1.75444 2.36699 1.68889 2.44447L1.66077 2.47728C1.11975 3.11498 0.69792 3.84484 0.415457 4.63197L0.401395 4.6726C0.331082 4.86791 0.388895 5.08666 0.546707 5.2226L1.58264 6.10697C1.53421 6.40072 1.51077 6.70072 1.51077 6.99916C1.51077 7.29916 1.53421 7.59916 1.58264 7.89135L0.546707 8.77572C0.469513 8.8418 0.414264 8.92982 0.388307 9.02807C0.36235 9.12631 0.366915 9.23013 0.401395 9.32572L0.415457 9.36635C0.69827 10.1538 1.11702 10.8804 1.66077 11.521L1.68889 11.5538C1.7546 11.6311 1.84218 11.6866 1.94009 11.7131C2.03799 11.7396 2.14162 11.7359 2.23733 11.7023L3.51702 11.2476C3.98265 11.6304 4.50296 11.9335 5.0639 12.1445L5.31077 13.4788C5.32928 13.5788 5.37776 13.6707 5.44976 13.7424C5.52177 13.8142 5.61389 13.8623 5.7139 13.8804L5.75608 13.8882C6.57763 14.0359 7.41892 14.0359 8.24046 13.8882L8.28265 13.8804C8.38265 13.8623 8.47478 13.8142 8.54678 13.7424C8.61879 13.6707 8.66726 13.5788 8.68577 13.4788L8.93108 12.1507C9.49648 11.9388 10.0229 11.6347 10.4889 11.2507L11.7592 11.7023C11.8549 11.7361 11.9586 11.74 12.0566 11.7135C12.1545 11.687 12.2421 11.6313 12.3076 11.5538L12.3358 11.521C12.8795 10.8788 13.2983 10.1538 13.5811 9.36635L13.5951 9.32572C13.6655 9.13353 13.6076 8.91478 13.4498 8.77885ZM11.317 6.28197C11.3561 6.51791 11.3764 6.7601 11.3764 7.00228C11.3764 7.24447 11.3561 7.48666 11.317 7.72259L11.2139 8.34916L12.3811 9.3476C12.2041 9.75523 11.9808 10.1411 11.7155 10.4976L10.2655 9.98353L9.77483 10.3867C9.4014 10.6929 8.98577 10.9335 8.53577 11.1023L7.94046 11.3257L7.66077 12.8413C7.21947 12.8913 6.77394 12.8913 6.33264 12.8413L6.05296 11.3226L5.46233 11.096C5.01702 10.9273 4.60296 10.6867 4.23265 10.382L3.74202 9.97728L2.28265 10.496C2.01702 10.1382 1.79514 9.75228 1.61702 9.34603L2.79671 8.33822L2.69515 7.71322C2.65765 7.48041 2.63733 7.23978 2.63733 7.00228C2.63733 6.76322 2.65608 6.52416 2.69515 6.29135L2.79671 5.66635L1.61702 4.65853C1.79358 4.25072 2.01702 3.86634 2.28265 3.50853L3.74202 4.02728L4.23265 3.6226C4.60296 3.31791 5.01702 3.07728 5.46233 2.90853L6.05452 2.6851L6.33421 1.16635C6.77327 1.11635 7.22171 1.11635 7.66233 1.16635L7.94202 2.68197L8.53733 2.90541C8.98577 3.07416 9.40296 3.31478 9.7764 3.62103L10.267 4.02416L11.717 3.5101C11.9826 3.86791 12.2045 4.25385 12.3826 4.6601L11.2155 5.65853L11.317 6.28197ZM6.99983 4.09603C5.48108 4.09603 4.24983 5.32728 4.24983 6.84603C4.24983 8.36478 5.48108 9.59603 6.99983 9.59603C8.51858 9.59603 9.74983 8.36478 9.74983 6.84603C9.74983 5.32728 8.51858 4.09603 6.99983 4.09603ZM8.23733 8.08353C8.07502 8.24631 7.88213 8.37539 7.66975 8.46334C7.45738 8.5513 7.2297 8.59639 6.99983 8.59603C6.53265 8.59603 6.09358 8.41322 5.76233 8.08353C5.59956 7.92122 5.47048 7.72833 5.38252 7.51595C5.29457 7.30358 5.24947 7.0759 5.24983 6.84603C5.24983 6.37885 5.43264 5.93978 5.76233 5.60853C6.09358 5.27728 6.53265 5.09603 6.99983 5.09603C7.46702 5.09603 7.90608 5.27728 8.23733 5.60853C8.40011 5.77084 8.52919 5.96373 8.61714 6.17611C8.7051 6.38849 8.75019 6.61616 8.74983 6.84603C8.74983 7.31322 8.56702 7.75228 8.23733 8.08353Z" fill="black" fill-opacity="0.85"/>
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_132_42">
+                            <rect width="14" height="14" fill="white"/>
+                        </clipPath>
+                    </defs>
+                </svg>
+            </button>
+        </div>
+        <div class="main">
+            <div class="title" v-if="!loading">
+                <a v-bind:title="node.notion_id ? 'Linked' : 'Unlinked'" :href="node.notion_url" target="_blank">
+                    <svg v-if="node.notion_id" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5.716 29.218L2.276 24.933C1.45247 23.9125 1.00227 22.6413 1 21.33V5.815C1 3.861 2.564 2.23901 4.58 2.10101L20.532 1.012C21.6865 0.931797 22.8348 1.23901 23.795 1.885L29.399 5.674C29.8888 5.99996 30.291 6.44131 30.5702 6.9592C30.8493 7.4771 30.9969 8.05567 31 8.644V26.284C31 28.196 29.463 29.779 27.488 29.901L9.783 30.99C8.207 31.087 6.684 30.423 5.716 29.217V29.218Z" fill="white"/>
+                        <path d="M11.248 13.579V13.376C11.248 12.861 11.661 12.434 12.192 12.398L16.063 12.14L21.417 20.023V13.104L20.039 12.92V12.824C20.039 12.303 20.461 11.874 20.999 11.846L24.522 11.666V12.172C24.5205 12.2892 24.4775 12.4021 24.4006 12.4905C24.3237 12.579 24.2179 12.6373 24.102 12.655L23.254 12.798V24.004L22.191 24.369C21.301 24.675 20.312 24.348 19.804 23.58L14.606 15.737V23.223L16.206 23.529L16.184 23.677C16.114 24.142 15.712 24.494 15.227 24.515L11.248 24.693C11.195 24.193 11.57 23.746 12.087 23.691L12.61 23.636V13.656L11.248 13.579V13.579Z" fill="black"/>
+                        <path d="M20.675 2.967L4.72301 4.056C3.76801 4.121 3.02701 4.889 3.02701 5.815V21.33C3.02701 22.2 3.32701 23.045 3.87801 23.732L7.31801 28.017C7.59791 28.3608 7.95601 28.6325 8.3624 28.8096C8.76879 28.9867 9.21166 29.064 9.65401 29.035L27.359 27.945C28.266 27.89 28.972 27.162 28.972 26.283V8.644C28.9705 8.37385 28.9027 8.10819 28.7746 7.87036C28.6464 7.63254 28.4618 7.42982 28.237 7.28L22.633 3.49C22.0567 3.10265 21.3677 2.9186 20.675 2.967V2.967ZM5.51501 6.057C5.29301 5.893 5.39801 5.551 5.67701 5.531L20.782 4.447C21.264 4.413 21.742 4.545 22.131 4.821L25.161 6.968C25.277 7.05 25.223 7.226 25.081 7.233L9.08401 8.103C8.60216 8.1303 8.12586 7.98886 7.73701 7.703L5.51401 6.056L5.51501 6.057ZM8.33401 10.831C8.33401 10.311 8.75401 9.881 9.29001 9.853L26.203 8.931C26.726 8.903 27.167 9.305 27.167 9.811V25.085C27.167 25.604 26.748 26.033 26.213 26.063L9.40701 27.02C8.82501 27.053 8.33401 26.605 8.33401 26.041V10.831V10.831Z" fill="black"/>
+                        <rect x="16" y="16" width="16" height="16" rx="8" fill="#20BF64"/>
+                        <path d="M29.3578 19.6875H28.4216C28.2904 19.6875 28.1658 19.7478 28.0855 19.8509L22.5636 26.846L19.9158 23.4911C19.8758 23.4402 19.8247 23.3991 19.7665 23.3708C19.7083 23.3425 19.6444 23.3278 19.5797 23.3277H18.6435C18.5538 23.3277 18.5042 23.4308 18.5591 23.5004L22.2274 28.1478C22.3988 28.3647 22.7283 28.3647 22.9011 28.1478L29.4422 19.8589C29.4971 19.7906 29.4475 19.6875 29.3578 19.6875V19.6875Z" fill="white"/>
+                    </svg>
+                    <svg v-if="!node.notion_id" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g opacity="0.25">
+                            <path d="M5.716 29.218L2.276 24.933C1.45247 23.9125 1.00227 22.6413 1 21.33V5.815C1 3.861 2.564 2.23901 4.58 2.10101L20.532 1.012C21.6865 0.931797 22.8348 1.23901 23.795 1.885L29.399 5.674C29.8888 5.99996 30.291 6.44131 30.5702 6.9592C30.8493 7.4771 30.9969 8.05567 31 8.644V26.284C31 28.196 29.463 29.779 27.488 29.901L9.783 30.99C8.207 31.087 6.684 30.423 5.716 29.217V29.218Z" fill="white"/>
+                            <path d="M11.248 13.579V13.376C11.248 12.861 11.661 12.434 12.192 12.398L16.063 12.14L21.417 20.023V13.104L20.039 12.92V12.824C20.039 12.303 20.461 11.874 20.999 11.846L24.522 11.666V12.172C24.5205 12.2892 24.4775 12.4021 24.4006 12.4905C24.3237 12.579 24.2179 12.6373 24.102 12.655L23.254 12.798V24.004L22.191 24.369C21.301 24.675 20.312 24.348 19.804 23.58L14.606 15.737V23.223L16.206 23.529L16.184 23.677C16.114 24.142 15.712 24.494 15.227 24.515L11.248 24.693C11.195 24.193 11.57 23.746 12.087 23.691L12.61 23.636V13.656L11.248 13.579V13.579Z" fill="black"/>
+                            <path d="M20.675 2.967L4.72301 4.056C3.76801 4.121 3.02701 4.889 3.02701 5.815V21.33C3.02701 22.2 3.32701 23.045 3.87801 23.732L7.31801 28.017C7.59791 28.3608 7.95601 28.6325 8.3624 28.8096C8.76879 28.9867 9.21166 29.064 9.65401 29.035L27.359 27.945C28.266 27.89 28.972 27.162 28.972 26.283V8.644C28.9705 8.37385 28.9027 8.10819 28.7746 7.87036C28.6464 7.63254 28.4618 7.42982 28.237 7.28L22.633 3.49C22.0567 3.10265 21.3677 2.9186 20.675 2.967V2.967ZM5.51501 6.057C5.29301 5.893 5.39801 5.551 5.67701 5.531L20.782 4.447C21.264 4.413 21.742 4.545 22.131 4.821L25.161 6.968C25.277 7.05 25.223 7.226 25.081 7.233L9.08401 8.103C8.60216 8.1303 8.12586 7.98886 7.73701 7.703L5.51401 6.056L5.51501 6.057ZM8.33401 10.831C8.33401 10.311 8.75401 9.881 9.29001 9.853L26.203 8.931C26.726 8.903 27.167 9.305 27.167 9.811V25.085C27.167 25.604 26.748 26.033 26.213 26.063L9.40701 27.02C8.82501 27.053 8.33401 26.605 8.33401 26.041V10.831V10.831Z" fill="black"/>
+                        </g>
+                        <rect x="16" y="16" width="16" height="16" rx="8" fill="#EBF6FF"/>
+                        <path d="M28.2942 19.7053C27.1612 18.5722 25.3277 18.5722 24.196 19.7053L22.8982 21.003L23.5813 21.6861L24.879 20.3883C25.5996 19.6678 26.8156 19.5914 27.6112 20.3883C28.408 21.1852 28.3317 22.3999 27.6112 23.1205L26.3134 24.4182L26.9978 25.1026L28.2956 23.8048C29.4259 22.6718 29.4259 20.8383 28.2942 19.7053V19.7053ZM23.1232 27.6097C22.4027 28.3303 21.1866 28.4066 20.3911 27.6097C19.5942 26.8129 19.6705 25.5981 20.3911 24.8776L21.6889 23.5798L21.0045 22.8955L19.7067 24.1932C18.5737 25.3263 18.5737 27.1597 19.7067 28.2914C20.8397 29.4231 22.6732 29.4245 23.8049 28.2914L25.1027 26.9937L24.4197 26.3106L23.1232 27.6097V27.6097ZM20.6295 19.9463C20.6093 19.9264 20.5821 19.9152 20.5538 19.9152C20.5255 19.9152 20.4983 19.9264 20.4781 19.9463L19.9478 20.4767C19.9278 20.4968 19.9167 20.524 19.9167 20.5524C19.9167 20.5807 19.9278 20.6079 19.9478 20.628L27.3728 28.053C27.4143 28.0946 27.4826 28.0946 27.5241 28.053L28.0545 27.5227C28.096 27.4812 28.096 27.4129 28.0545 27.3713L20.6295 19.9463Z" fill="#166BC7"/>
+                    </svg>
+                </a>
+                <input class="input" v-model="node.name">
+            </div>
+            <div class="tree" v-if="!loading" >
+                <ul v-for="tagType in node.tags">
+                    <div v-on:click="toggleType(tagType)">
+                        <svg class="icon-fold" v-bind:class="{ 'rotate-0': !tagType.open, 'rotate-90': tagType.open }" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8.38828 5.78337L3.92578 1.93493C3.75938 1.79196 3.51562 1.92087 3.51562 2.15173V9.84861C3.51562 10.0795 3.75938 10.2084 3.92578 10.0654L8.38828 6.21696C8.51602 6.10681 8.51602 5.89353 8.38828 5.78337Z" fill="black" fill-opacity="0.85"/>
+                        </svg>
+                        <span>
+                            <span class="tag-name"> {{ tagType.type }} </span>
+                            <span class="counter"> {{ tagType.tags.filter(t => t.check).length }} </span>
+                        </span>
+                        <div class="icon-add" v-on:click="toggleAdding(tagType)">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4.12489 7.50072H6.49989V9.87572C6.49989 9.94447 6.55614 10.0007 6.62489 10.0007H7.37489C7.44364 10.0007 7.49989 9.94447 7.49989 9.87572V7.50072H9.87489C9.94364 7.50072 9.99989 7.44447 9.99989 7.37572V6.62572C9.99989 6.55697 9.94364 6.50072 9.87489 6.50072H7.49989V4.12572C7.49989 4.05697 7.44364 4.00072 7.37489 4.00072H6.62489C6.55614 4.00072 6.49989 4.05697 6.49989 4.12572V6.50072H4.12489C4.05614 6.50072 3.99989 6.55697 3.99989 6.62572V7.37572C3.99989 7.44447 4.05614 7.50072 4.12489 7.50072Z" fill="black" fill-opacity="0.85"/>
+                                <path d="M12.7502 0.750244H1.25024C0.973682 0.750244 0.750244 0.973682 0.750244 1.25024V12.7502C0.750244 13.0268 0.973682 13.2502 1.25024 13.2502H12.7502C13.0268 13.2502 13.2502 13.0268 13.2502 12.7502V1.25024C13.2502 0.973682 13.0268 0.750244 12.7502 0.750244ZM12.1252 12.1252H1.87524V1.87524H12.1252V12.1252Z" fill="black" fill-opacity="0.85"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <li class="tag-adding" v-show="tagType.adding">
+                        <input class="input" v-model="tagType.addingText" placeholder="The tag name">
+                        <button class="button button-secondary" v-on:click="tagType.adding = false">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7.80913 6.99929L11.9107 2.11022C11.9794 2.02897 11.9216 1.90554 11.8154 1.90554H10.5685C10.4951 1.90554 10.4248 1.93835 10.3763 1.9946L6.99351 6.02741L3.6107 1.9946C3.56382 1.93835 3.49351 1.90554 3.41851 1.90554H2.17163C2.06538 1.90554 2.00757 2.02897 2.07632 2.11022L6.17788 6.99929L2.07632 11.8883C2.06092 11.9065 2.05104 11.9286 2.04785 11.9522C2.04467 11.9757 2.04831 11.9997 2.05834 12.0213C2.06838 12.0428 2.08439 12.061 2.10447 12.0737C2.12455 12.0865 2.14786 12.0932 2.17163 12.093H3.41851C3.49195 12.093 3.56226 12.0602 3.6107 12.004L6.99351 7.97116L10.3763 12.004C10.4232 12.0602 10.4935 12.093 10.5685 12.093H11.8154C11.9216 12.093 11.9794 11.9696 11.9107 11.8883L7.80913 6.99929Z" fill="black" fill-opacity="0.65"/>
+                            </svg>
+                        </button>
+                        <button class="button button-primary" v-on:click="addTag(tagType)">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M13.2507 1.96875H12.1586C12.0054 1.96875 11.8601 2.03906 11.7664 2.15937L5.32418 10.3203L2.23512 6.40625C2.18839 6.34692 2.12882 6.29895 2.0609 6.26593C1.99297 6.23292 1.91845 6.21572 1.84293 6.21563H0.750741C0.646054 6.21563 0.588241 6.33594 0.652304 6.41719L4.93199 11.8391C5.13199 12.0922 5.51637 12.0922 5.71793 11.8391L13.3492 2.16875C13.4132 2.08906 13.3554 1.96875 13.2507 1.96875V1.96875Z" fill="white"/>
+                            </svg>
+                        </button>
+                    </li>
+                    <li v-show="tagType.open" v-bind:class="{ 'li-selected': tag.check }" v-for="tag in tagType.tags" v-on:click="tag.check = !tag.check">
+                        <span class="tag" v-bind:class="'tag-' + tag.color"> {{ tag.name }} </span>
+                        <svg v-if="tag.check" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M13.2507 1.96875H12.1586C12.0054 1.96875 11.8601 2.03906 11.7664 2.15937L5.32418 10.3203L2.23512 6.40625C2.18839 6.34692 2.12882 6.29895 2.0609 6.26593C1.99297 6.23292 1.91845 6.21572 1.84293 6.21563H0.750741C0.646054 6.21563 0.588241 6.33594 0.652304 6.41719L4.93199 11.8391C5.13199 12.0922 5.51637 12.0922 5.71793 11.8391L13.3492 2.16875C13.4132 2.08906 13.3554 1.96875 13.2507 1.96875V1.96875Z" fill="black" fill-opacity="0.65"/>
+                        </svg>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <button class="button button-primary" v-if="!loading" v-on:click="pushNode">Save</button>
+            <button class="button button-secondary" style="padding: 8px;" v-if="!loading && node.notion_id" v-on:click="deleteNode">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4.62476 1.87358H4.49976C4.56851 1.87358 4.62476 1.81733 4.62476 1.74858V1.87358H9.37476V1.74858C9.37476 1.81733 9.43101 1.87358 9.49976 1.87358H9.37476V2.99858H10.4998V1.74858C10.4998 1.19702 10.0513 0.748581 9.49976 0.748581H4.49976C3.94819 0.748581 3.49976 1.19702 3.49976 1.74858V2.99858H4.62476V1.87358ZM12.4998 2.99858H1.49976C1.22319 2.99858 0.999756 3.22202 0.999756 3.49858V3.99858C0.999756 4.06733 1.05601 4.12358 1.12476 4.12358H2.06851L2.45444 12.2955C2.47944 12.8283 2.92007 13.2486 3.45288 13.2486H10.5466C11.081 13.2486 11.5201 12.8298 11.5451 12.2955L11.931 4.12358H12.8748C12.9435 4.12358 12.9998 4.06733 12.9998 3.99858V3.49858C12.9998 3.22202 12.7763 2.99858 12.4998 2.99858ZM10.4263 12.1236H3.57319L3.19507 4.12358H10.8044L10.4263 12.1236Z" fill="black" fill-opacity="0.85"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="loading" v-if="loading">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 24C10.3805 24 8.80781 23.6836 7.32891 23.0578C5.89922 22.4531 4.61719 21.5859 3.51563 20.4844C2.41406 19.3828 1.54688 18.1008 0.942188 16.6711C0.316406 15.1922 0 13.6195 0 12C0 11.5336 0.377344 11.1562 0.84375 11.1562C1.31016 11.1562 1.6875 11.5336 1.6875 12C1.6875 13.3922 1.95938 14.7422 2.49844 16.0148C3.01875 17.243 3.76172 18.3469 4.70859 19.2938C5.65547 20.2406 6.75938 20.9859 7.9875 21.5039C9.25781 22.0406 10.6078 22.3125 12 22.3125C13.3922 22.3125 14.7422 22.0406 16.0148 21.5016C17.243 20.9813 18.3469 20.2383 19.2938 19.2914C20.2406 18.3445 20.9859 17.2406 21.5039 16.0125C22.0406 14.7422 22.3125 13.3922 22.3125 12C22.3125 10.6078 22.0406 9.25781 21.5016 7.98516C20.983 6.75998 20.2325 5.64659 19.2914 4.70625C18.3521 3.76387 17.2385 3.01321 16.0125 2.49609C14.7422 1.95938 13.3922 1.6875 12 1.6875C11.5336 1.6875 11.1563 1.31016 11.1563 0.84375C11.1563 0.377344 11.5336 0 12 0C13.6195 0 15.1922 0.316406 16.6711 0.942188C18.1008 1.54688 19.3828 2.41406 20.4844 3.51562C21.5859 4.61719 22.4508 5.90156 23.0555 7.32891C23.6813 8.80781 23.9977 10.3805 23.9977 12C23.9977 13.6195 23.6813 15.1922 23.0555 16.6711C22.4531 18.1008 21.5859 19.3828 20.4844 20.4844C19.3828 21.5859 18.0984 22.4508 16.6711 23.0555C15.1922 23.6836 13.6195 24 12 24V24Z" fill="black" fill-opacity="0.85"/>
+            </svg>
+            <p> {{ loading }} </p>
+        </div>
+
+        <div class="empty" v-if="!figma_node">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 20H50V16H6V20Z" fill="#333333"/>
+                <path d="M6 40H50V36H6V40Z" fill="#333333"/>
+                <path d="M16 6V50H20V6H16Z" fill="#333333"/>
+                <path d="M36 6V50H40V6H36Z" fill="#333333"/>
+                <path d="M28.1882 46.8501L25.7681 26.2788C25.6661 25.4114 26.6469 24.8392 27.3518 25.3549L43.8636 37.4368C44.6073 37.981 44.2814 39.1562 43.3636 39.2397L35.4689 39.9574C35.1719 39.9844 34.9025 40.1425 34.7341 40.3886L30.0067 47.2979C29.4848 48.0606 28.2962 47.7679 28.1882 46.8501Z" fill="#333333"/>
+                <path d="M24.5267 26.4249L26.9468 46.9961C27.1898 49.0613 29.8641 49.7199 31.0383 48.0038L35.6993 41.1916L43.4768 40.4845C45.5419 40.2968 46.2752 37.6525 44.6017 36.428L28.0899 24.3462C26.504 23.1858 24.2971 24.4733 24.5267 26.4249Z" stroke="white" stroke-opacity="0.9" stroke-width="2.5"/>
+            </svg>                
+            <p>Select a <strong>Frame</strong> to start</p>
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            figma_node: undefined,
+            tokens_inited: false,
+            show_tokens_setting: true,
+            tokens: {
+                figma_token: '',
+                notion_token: '',
+                notion_database: '',
+            },
+            file: undefined,
+            full_tags: {},
+            loading: 'Loading...',
+            node: {
+                notion_id: undefined,
+                id: undefined,
+                name: '',
+                tags: {},
+                need_reload_tags: false
+            }
+        },
+        methods: {
+            saveTokens: async function (event) {
+                parent.postMessage({
+                    pluginMessage: {
+                        type: 'init',
+                        figma_token: this.tokens.figma_token,
+                        notion_token: this.tokens.notion_token,
+                        notion_database: this.tokens.notion_database
+                    }
+                }, '*');
+                try {
+                    await loadTags();
+                } catch (e) {
+                    console.error('error');
+                    parent.postMessage({
+                        pluginMessage: {
+                            type: 'notify',
+                            msg: 'Token is not correct',
+                            options: {
+                                error: true
+                            }
+                        }
+                    }, '*');
+                    return;
+                }
+                this.tokens_inited = true;
+                this.show_tokens_setting = false;
+                if (this.figma_node) {
+                    await loadNode(this.file, this.figma_node);
+                }
+            },
+            tokensCancel: function (event) {
+                this.show_tokens_setting = false;
+            },
+            testClearLocalStorge: function (event) {
+                parent.postMessage({
+                    pluginMessage: {
+                        type: 'clearLocalStorge'
+                    }
+                }, '*');
+            },
+            toggleTag: function (typeIndex, tagIndex) {
+                this.node.tags[typeIndex].tags[tagIndex].check = !this.node.tags[typeIndex].tags[tagIndex].check;
+                console.log(this.node.tags);
+            },
+            pushNode: async function (event) {
+                this.loading = "Saving...";
+                const tags = tree2Tag(app.node.tags);
+                const result = await fetch('https://notion.boybook.top/node/push/' + app.file + "/" + app.node.id, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json;charset=UTF-8',
+                        'figma_token': app.tokens.figma_token,
+                        'notion_token': app.tokens.notion_token,
+                        'notion_database': app.tokens.notion_database
+                    },
+                    body: JSON.stringify({
+                        name: app.node.name,
+                        tags: tags,
+                    })
+                }).then(d => d.json());
+                if (result.result.length > 0) {
+                    this.node.notion_id = result.result[0].id;
+                    this.node.notion_url = result.result[0].url;
+                }
+                if (this.node.need_reload_tags) {
+                    this.loading = "Loading Tags...";
+                    await loadTags();
+                    await loadNode(this.file, this.figma_node);
+                }
+                this.loading = undefined;
+            },
+            deleteNode: async function (event) {
+                this.loading = "Deleting...";
+                const result = await fetch('https://notion.boybook.top/node/delete/' + app.file + "/" + app.node.id, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json;charset=UTF-8',
+                        'figma_token': app.tokens.figma_token,
+                        'notion_token': app.tokens.notion_token,
+                        'notion_database': app.tokens.notion_database
+                    }
+                }).then(d => d.json());
+                console.log(result);
+                await loadNode(this.file, this.figma_node);
+            },
+            refresh: async function (event) {
+                if (!this.loading) {
+                    this.loading = "Loading Tags...";
+                    await loadTags();
+                    await loadNode(this.file, this.figma_node);
+                }
+            },
+            toggleType: function (tagType) {
+                tagType.open = tagType.adding || !tagType.open;
+            },
+            toggleAdding: function (tagType) {
+                tagType.adding = !tagType.adding;
+            },
+            addTag: function (tagType) {
+                if (tagType.addingText.length > 0) {
+                    tagType.tags.unshift({
+                        check: true,
+                        color: 'default',
+                        id: '',
+                        name: tagType.addingText
+                    });
+                    tagType.adding = false;
+                    tagType.addingText = '';
+                    this.node.need_reload_tags = true;
+                }
+            }
+        }
+    });
+
+    const loadTags = async () => {
+        const response = await fetch('https://notion.boybook.top/tags', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json;charset=UTF-8',
+                'figma_token': app.tokens.figma_token,
+                'notion_token': app.tokens.notion_token,
+                'notion_database': app.tokens.notion_database
+            }
+        });
+        const result = await response.json();
+        app.full_tags = result.result;
+    }
+
+    const loadNode = async (file, node) => {
+        if (!node) return;
+        app.file = file;
+        app.node.id = node.id;
+        app.node.need_reload_tags = false;
+        app.loading = "Loading Node...";
+        const data = await fetch('https://notion.boybook.top/node/get/' + file + "/" + node.id, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json;charset=UTF-8',
+                'figma_token': app.tokens.figma_token,
+                'notion_token': app.tokens.notion_token,
+                'notion_database': app.tokens.notion_database
+            }
+        }).then(d => d.json())
+
+        if (data.result.length > 0) {
+            app.node.notion_id = data.result[0].id;
+            app.node.notion_url = data.result[0].url;
+            app.node.name = data.result[0].name;
+            if (app.full_tags) {
+                app.node.tags = tags2Tree(app.full_tags, data.result[0]['tags']);
+            }
+        } else { // 在 Notion 没有找到 Node
+            app.node.notion_id = undefined;
+            app.node.notoin_url = undefined;
+            app.node.name = node.name;
+            app.node.tags = tags2Tree(app.full_tags, {});
+        }
+        app.loading = undefined;
+    }
+
+    let tagsArrayDemo = [
+        {
+            type: "上线",
+            open: true,
+            adding: false,
+            addingText: '',
+            tags: [
+                {
+                    sub: 'xxx',
+                    tags: [
+                        {
+                            check: false,
+                            color: 'tag.color',
+                            id: 'tag.id',
+                            name: 'tag.name'
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+
+    const tags2Tree = (full_tags, node_tags) => {
+        const tagsArray = [];
+        for (let tagType in full_tags) {
+            const tags = [];
+            for (let tag of full_tags[tagType]) {
+                tags.push({
+                    check: false,
+                    color: tag.color,
+                    id: tag.id,
+                    name: tag.name
+                });
+            }
+            // tagType
+            let entry = {
+                type: tagType,
+                open: true,
+                adding: false,
+                addingText: '',
+                tags: tags // TODO Child sub tags
+            };
+            if (Object.keys(node_tags).length > 0) {
+                console.log(node_tags);
+                for (let tagIndex in entry.tags) {
+                    for (let tagVaild of node_tags[tagType]) {
+                        if (entry.tags[tagIndex].name === tagVaild.name) {
+                            entry.tags[tagIndex]['check'] = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            tagsArray.push(entry);
+        }
+        return tagsArray;
+    }
+
+    const tree2Tag = (tree) => {
+        const tags = {};
+        for (let tagEntry of tree) {
+            const array = [];
+            for (let tag of tagEntry.tags) {
+                if (tag.check) {
+                    array.push(tag.name);
+                }
+            }
+            //if (array.length > 0) {
+            tags[tagEntry.type] = array;
+            //}
+        }
+        return tags;
+    }
+
+    // Handle figma messages
+    onmessage = async (event) => {
+        const message = event.data.pluginMessage;
+        if (message.tokens) {
+            app.tokens = message.tokens;
+            app.tokens_inited = true;
+        }
+        if (message.type === 'init') {
+            app.show_tokens_setting = true;
+        } else if (message.type === 'normal') {
+            app.figma_node = message.node;
+            app.show_tokens_setting = false;
+            await loadTags();
+            await loadNode(message.file, message.node);
+        } else if (message.type === 'selectionchange') {
+            if (!app.tokens_inited) return;
+            if (!app.figma_node || message.node.id !== app.figma_node.id) {
+                app.figma_node = message.node;
+                await loadNode(message.file, message.node);
+            }
+        }
+    }
+
+
+</script>

@@ -1,0 +1,11 @@
+{
+  "name": "notion-tags",
+  "id": "1078982521238011415",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": [
+    "figma"
+  ],
+  "ui": "ui.html",
+  "enablePrivatePluginApi": true
+}
