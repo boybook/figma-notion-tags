@@ -40,11 +40,25 @@ figma.ui.onmessage = msg => {
     else if (msg.type === 'close') {
         figma.closePlugin();
     }
-    else if (msg.type === 'clearLocalStorge') {
+    else if (msg.type === 'clearLocalStorage') {
         figma.clientStorage.deleteAsync("figma-notion.access").then(re => figma.closePlugin());
     }
     else if (msg.type === 'notify') {
         figma.notify(msg.msg, msg.options);
+    }
+    else if (msg.type === 'node-push') {
+        const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
+        if (node) {
+            node.setRelaunchData({
+                'edit': 'Node Name: ' + msg.name
+            });
+        }
+    }
+    else if (msg.type === 'node-delete') {
+        const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
+        if (node) {
+            node.setRelaunchData({});
+        }
     }
 };
 figma.on("selectionchange", () => {

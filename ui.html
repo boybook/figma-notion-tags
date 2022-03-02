@@ -33,6 +33,10 @@
         box-shadow: inset 0 0 0 2px #24A0FB;
     }
 
+    .input::placeholder {
+        color: rgba(0, 0, 0, .25);
+    }
+
     .button {
         display: flex;
         flex-direction: row;
@@ -181,7 +185,6 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        padding: 12px;
         color: rgba(0, 0, 0, 0.85);
         width: 100%;
     }
@@ -307,7 +310,6 @@
     }
 
     .title svg {
-        margin-right: 8px;
         transition: background-color 100ms ease;
         border-radius: 2px;
     }
@@ -317,6 +319,7 @@
     }
 
     .title .input {
+        margin-left: 8px;
         font-size: 14px;
         line-height: 20px;
         height: 30px;
@@ -335,18 +338,18 @@
         order: 2;
         align-self: stretch;
         flex-grow: 0;
-        margin: 8px 0;
+        margin: 12px 0 0;
 
         user-select: none;
     }
 
-    .tree ul {
+    .tree>ul {
         /* Auto layout */
         display: flex;
         flex-direction: column;
         align-items: flex-start;
         padding: 0;
-        margin: 4px 0 0 0;
+        margin: 0;
         /* Inside auto layout */
         flex: none;
         order: 0;
@@ -354,7 +357,11 @@
         flex-grow: 0;
     }
 
-    .tree ul>div {
+    .tree li {
+        display: block;
+    }
+
+    .tree>ul>div {
         font-weight: 600;
         font-size: 14px;
         line-height: 22px;
@@ -374,12 +381,18 @@
         transition: background-color 100ms ease;
     }
 
-    .tree ul>div:hover {
+    .tree>ul>li {
+        flex: none;
+        align-self: stretch;
+        flex-grow: 0;
+    }
+
+    .tree>ul>div:hover {
         background-color: rgba(0, 0, 0, 0.05);
         border-radius: 3px;
     }
 
-    .tree ul>div .icon-fold {
+    .tree>ul>div .icon-fold {
         transition: transform 100ms ease;
         flex: none;
         order: 0;
@@ -387,7 +400,7 @@
         margin-right: 4px;
     }
 
-    .tree ul>div .icon-add {
+    .tree>ul>div .icon-add {
         flex: none;
         order: 2;
         flex-grow: 0;
@@ -396,11 +409,11 @@
         cursor: pointer;
     }
 
-    .tree ul>div .icon-add:hover {
+    .tree>ul>div .icon-add:hover {
         background-color: rgba(0, 0, 0, 0.05);
     }
 
-    .tree ul>div>span {
+    .tree>ul>div>span {
         /* Auto layout */
         display: flex;
         flex-direction: row;
@@ -414,7 +427,7 @@
         font-weight: 600;
     }
 
-    .tree ul .tag-name {
+    .tree>ul .tag-name {
         /* Inside auto layout */
         flex: none;
         order: 0;
@@ -445,7 +458,31 @@
         transform: rotate(90deg);
     }
 
-    .tree li {
+    .tree .sub-type {
+        padding-bottom: 8px;
+    }
+
+    .tree .sub-type .sub-type-title {
+        color: rgba(0, 0, 0, .45);
+        padding: 0 0 4px 24px;
+        font-size: 12px;
+    }
+
+    .tree>ul>li>ul {
+        /* Auto layout */
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0;
+        margin: 0;
+        /* Inside auto layout */
+        flex: none;
+        order: 0;
+        align-self: stretch;
+        flex-grow: 0;
+    }
+
+    .tree>ul>li>ul>li {
         /* Auto layout */
         display: flex;
         flex-direction: row;
@@ -463,7 +500,7 @@
         border-radius: 3px;
     }
 
-    .tree li:hover {
+    .tree>ul>li>ul>li:hover {
         background-color: rgba(0, 0, 0, 0.05);
     }
 
@@ -472,7 +509,7 @@
         border-radius: 0;
     }
 
-    .tree li .tag {
+    .tree .tag {
         display: flex;
         flex-direction: row;
         align-items: center;
@@ -492,7 +529,7 @@
     }
 
     .tag-adding {
-        display: flex;
+        display: flex !important;
         flex-direction: row;
         align-items: center;
         padding: 5px 2px 5px 24px;
@@ -577,7 +614,7 @@
         <div class="button-group" style="margin-top: 24px">
             <button class="button button-primary" v-on:click="saveTokens">Save</button>
             <button class="button button-secondary" v-if="tokens_inited" v-on:click="tokensCancel">Cancel</button>
-            <button class="button button-secondary" v-on:click="testClearLocalStorge">Clear</button>
+            <button class="button button-secondary" v-on:click="testClearLocalStorage">Clear</button>
         </div>
     </div>
     <div v-if="!show_tokens_setting">
@@ -649,7 +686,7 @@
                         </svg>
                         <span>
                             <span class="tag-name"> {{ tagType.type }} </span>
-                            <span class="counter"> {{ tagType.tags.filter(t => t.check).length }} </span>
+                            <span class="counter"> {{ Object.values(tagType.tags).flat().filter(t => t.check).length }} </span>
                         </span>
                         <div class="icon-add" v-on:click="toggleAdding(tagType)">
                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -658,7 +695,7 @@
                             </svg>
                         </div>
                     </div>
-                    <li class="tag-adding" v-show="tagType.adding">
+                    <li class="tag-adding" v-if="tagType.adding">
                         <input class="input" v-model="tagType.addingText" placeholder="The tag name">
                         <button class="button button-secondary" v-on:click="tagType.adding = false">
                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -671,11 +708,16 @@
                             </svg>
                         </button>
                     </li>
-                    <li v-show="tagType.open" v-bind:class="{ 'li-selected': tag.check }" v-for="tag in tagType.tags" v-on:click="tag.check = !tag.check">
-                        <span class="tag" v-bind:class="'tag-' + tag.color"> {{ tag.name }} </span>
-                        <svg v-if="tag.check" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M13.2507 1.96875H12.1586C12.0054 1.96875 11.8601 2.03906 11.7664 2.15937L5.32418 10.3203L2.23512 6.40625C2.18839 6.34692 2.12882 6.29895 2.0609 6.26593C1.99297 6.23292 1.91845 6.21572 1.84293 6.21563H0.750741C0.646054 6.21563 0.588241 6.33594 0.652304 6.41719L4.93199 11.8391C5.13199 12.0922 5.51637 12.0922 5.71793 11.8391L13.3492 2.16875C13.4132 2.08906 13.3554 1.96875 13.2507 1.96875V1.96875Z" fill="black" fill-opacity="0.65"/>
-                        </svg>
+                    <li v-for="(childTags, childTagType) in tagType.tags" v-if="tagType.open">
+                        <ul class="sub-type">
+                            <div class="sub-type-title" v-if="childTagType"> {{ childTagType }} </div>
+                            <li v-bind:class="{ 'li-selected': tag.check }" v-for="tag in childTags" v-on:click="tag.check = !tag.check">
+                                <span class="tag" v-bind:class="'tag-' + tag.color"> {{ tag.name }} </span>
+                                <svg v-if="tag.check" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M13.2507 1.96875H12.1586C12.0054 1.96875 11.8601 2.03906 11.7664 2.15937L5.32418 10.3203L2.23512 6.40625C2.18839 6.34692 2.12882 6.29895 2.0609 6.26593C1.99297 6.23292 1.91845 6.21572 1.84293 6.21563H0.750741C0.646054 6.21563 0.588241 6.33594 0.652304 6.41719L4.93199 11.8391C5.13199 12.0922 5.51637 12.0922 5.71793 11.8391L13.3492 2.16875C13.4132 2.08906 13.3554 1.96875 13.2507 1.96875V1.96875Z" fill="black" fill-opacity="0.65"/>
+                                </svg>
+                            </li>
+                        </ul>
                     </li>
                 </ul>
             </div>
@@ -770,16 +812,12 @@
             tokensCancel: function (event) {
                 this.show_tokens_setting = false;
             },
-            testClearLocalStorge: function (event) {
+            testClearLocalStorage: function (event) {
                 parent.postMessage({
                     pluginMessage: {
-                        type: 'clearLocalStorge'
+                        type: 'clearLocalStorage'
                     }
                 }, '*');
-            },
-            toggleTag: function (typeIndex, tagIndex) {
-                this.node.tags[typeIndex].tags[tagIndex].check = !this.node.tags[typeIndex].tags[tagIndex].check;
-                console.log(this.node.tags);
             },
             pushNode: async function (event) {
                 this.loading = "Saving...";
@@ -797,6 +835,12 @@
                         tags: tags,
                     })
                 }).then(d => d.json());
+                parent.postMessage({
+                    pluginMessage: {
+                        type: 'node-push',
+                        name: app.node.name
+                    }
+                }, '*');
                 if (result.result.length > 0) {
                     this.node.notion_id = result.result[0].id;
                     this.node.notion_url = result.result[0].url;
@@ -819,7 +863,11 @@
                         'notion_database': app.tokens.notion_database
                     }
                 }).then(d => d.json());
-                console.log(result);
+                parent.postMessage({
+                    pluginMessage: {
+                        type: 'node-delete'
+                    }
+                }, '*');
                 await loadNode(this.file, this.figma_node);
             },
             refresh: async function (event) {
@@ -837,12 +885,21 @@
             },
             addTag: function (tagType) {
                 if (tagType.addingText.length > 0) {
-                    tagType.tags.unshift({
+                    const subs = tagType.addingText.replaceAll(' ', '').split('/', 2);
+                    const tag = {
                         check: true,
                         color: 'default',
                         id: '',
                         name: tagType.addingText
-                    });
+                    }
+                    if (subs.length > 1) {
+                        if (!tagType.tags[subs[0]]) {
+                            tagType.tags[subs[0]] = [];
+                        }
+                        tagType.tags[subs[0]].unshift(tag);
+                    } else {
+                        tagType.tags[''].unshift(tag);
+                    }
                     tagType.adding = false;
                     tagType.addingText = '';
                     this.node.need_reload_tags = true;
@@ -903,33 +960,53 @@
             open: true,
             adding: false,
             addingText: '',
-            tags: [
-                {
-                    sub: 'xxx',
-                    tags: [
-                        {
-                            check: false,
-                            color: 'tag.color',
-                            id: 'tag.id',
-                            name: 'tag.name'
-                        }
-                    ]
-                }
-            ]
+            tags: {
+                '': [
+
+                ],
+                xxx: [
+                    {
+                        check: true,
+                        color: 'tag.color',
+                        id: 'tag.id',
+                        name: 'tag.name'
+                    },
+                    {
+                        check: false,
+                        color: 'tag.color',
+                        id: 'tag.id',
+                        name: 'tag.name'
+                    }
+                ]
+            }
         }
     ]
 
+    /**
+     * @param full_tags Tags config
+     * @param node_tags Tags data from Notion API
+     * @returns {*[]} Tags data for UI
+     */
     const tags2Tree = (full_tags, node_tags) => {
         const tagsArray = [];
         for (let tagType in full_tags) {
-            const tags = [];
+            // type
+            const tags = {
+                '': []  // 把默认组放在最前面
+            };
             for (let tag of full_tags[tagType]) {
-                tags.push({
+                const tagNameSubs = tag.name.replaceAll(' ', '').split('/', 2);
+                const childTag = tagNameSubs.length > 1 ? tagNameSubs[0] : '';
+                if (!tags[childTag]) {
+                    tags[childTag] = [];
+                }
+                const treeTag = {
                     check: false,
                     color: tag.color,
                     id: tag.id,
                     name: tag.name
-                });
+                };
+                tags[childTag].push(treeTag);
             }
             // tagType
             let entry = {
@@ -937,15 +1014,16 @@
                 open: true,
                 adding: false,
                 addingText: '',
-                tags: tags // TODO Child sub tags
+                tags: tags
             };
             if (Object.keys(node_tags).length > 0) {
-                console.log(node_tags);
-                for (let tagIndex in entry.tags) {
-                    for (let tagVaild of node_tags[tagType]) {
-                        if (entry.tags[tagIndex].name === tagVaild.name) {
-                            entry.tags[tagIndex]['check'] = true;
-                            break;
+                for (let childTag in entry.tags) {
+                    for (let tagIndex in entry.tags[childTag]) {
+                        for (let tagVaild of node_tags[tagType]) {
+                            if (entry.tags[childTag][tagIndex].name === tagVaild.name) {
+                                entry.tags[childTag][tagIndex].check = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -959,14 +1037,14 @@
         const tags = {};
         for (let tagEntry of tree) {
             const array = [];
-            for (let tag of tagEntry.tags) {
-                if (tag.check) {
-                    array.push(tag.name);
+            for (let childType in tagEntry.tags) {
+                for (let tag of tagEntry.tags[childType]) {
+                    if (tag.check) {
+                        array.push(tag.name);
+                    }
                 }
             }
-            //if (array.length > 0) {
             tags[tagEntry.type] = array;
-            //}
         }
         return tags;
     }
@@ -993,6 +1071,5 @@
             }
         }
     }
-
 
 </script>
