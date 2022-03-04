@@ -4,11 +4,12 @@
   "api": "1.0.0",
   "main": "code.js",
   "editorType": [
-    "figma"
+    "figma",
+    "figjam"
   ],
   "ui": "ui.html",
   "enablePrivatePluginApi": true,
   "relaunchButtons": [
-    {"command": "edit", "name": "Edit Node"}
+    {"command": "edit", "name": "Notion Node"}
   ]
 }

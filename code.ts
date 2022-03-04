@@ -10,8 +10,8 @@ figma.showUI(__html__);
 figma.ui.resize(288, 600);
 
 figma.clientStorage.getAsync("figma-notion.access").then(data => {
+  const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
   if (data && data.figma_token && data.notion_token && data.notion_database) {
-    const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
     figma.ui.postMessage({
       type: "normal",
       tokens: data,
@@ -24,7 +24,13 @@ figma.clientStorage.getAsync("figma-notion.access").then(data => {
     });
   } else {
     figma.ui.postMessage({
-      type: "init"
+      type: "init",
+      file: figma.fileKey,
+      node: {
+        frame: node.type !== 'PAGE',
+        id: node.id,
+        name: node.name,
+      }
     });
   }
 });
@@ -33,34 +39,55 @@ figma.clientStorage.getAsync("figma-notion.access").then(data => {
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.
 figma.ui.onmessage = msg => {
-  if (msg.type === 'init') {
-    figma.clientStorage.setAsync("figma-notion.access", {
-      figma_token: msg.figma_token,
-      notion_token: msg.notion_token,
-      notion_database: msg.notion_database
-    });
-  } else if (msg.type === 'close') {
-    figma.closePlugin();
-  } else if (msg.type === 'clearLocalStorage') {
-    figma.clientStorage.deleteAsync("figma-notion.access").then(re => figma.closePlugin());
-  } else if (msg.type === 'notify') {
-    figma.notify(msg.msg, msg.options);
-  } else if (msg.type === 'node-push') {
-    const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
-    if (node) {
-      node.setRelaunchData({
-        'edit': 'Node Name: ' + msg.name
+  switch (msg.type) {
+    case 'init': {
+      figma.clientStorage.setAsync("figma-notion.access", {
+        figma_token: msg.figma_token,
+        notion_token: msg.notion_token,
+        notion_database: msg.notion_database
       });
+      break;
     }
-  } else if (msg.type === 'node-delete') {
-    const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
-    if (node) {
-      node.setRelaunchData({});
+    case 'close': {
+      figma.closePlugin();
+      break;
+    }
+    case 'clearLocalStorage': {
+      figma.clientStorage.deleteAsync("figma-notion.access").then(re => figma.closePlugin());
+      break;
+    }
+    case 'notify': {
+      figma.notify(msg.msg, msg.options);
+      break;
+    }
+    case 'node-push': {
+      const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
+      if (node) {
+        node.setRelaunchData({
+          'edit': msg.name,
+        });
+      }
+      break;
+    }
+    case 'node-delete': {
+      const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
+      if (node) {
+        node.setRelaunchData({});
+      }
+      break;
+    }
+    case 'loading-finish': {
+      selectionChange();
+      break;
     }
   }
 };
 
 figma.on("selectionchange", () => {
+  selectionChange();
+});
+
+function selectionChange() {
   const file = figma.fileKey;
   const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
   figma.ui.postMessage({
@@ -72,7 +99,7 @@ figma.on("selectionchange", () => {
       name: node.name
     }
   });
-});
+}
 
 function isRootFrame(node: BaseNode): node is FrameNode | ComponentNode | InstanceNode {
   return node.parent.type == "PAGE";
