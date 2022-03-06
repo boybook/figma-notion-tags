@@ -2,12 +2,12 @@
   "name": "notion-tags",
   "id": "1078982521238011415",
   "api": "1.0.0",
-  "main": "code.js",
+  "main": "dist/code.js",
   "editorType": [
     "figma",
     "figjam"
   ],
-  "ui": "ui.html",
+  "ui": "dist/ui.html",
   "enablePrivatePluginApi": true,
   "relaunchButtons": [
     {"command": "edit", "name": "Notion Node"}

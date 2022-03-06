@@ -2,9 +2,10 @@
   "compilerOptions": {
     "target": "es6",
     "lib": [
-      "esnext",
+      "es6",
       "dom"
     ],
+    "noEmit": false,  // Emit handled by webpack.
     "moduleResolution": "node",
     "typeRoots": [
       "./node_modules/@types",
