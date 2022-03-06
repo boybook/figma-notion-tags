@@ -44,7 +44,8 @@ figma.ui.onmessage = msg => {
       figma.clientStorage.setAsync("figma-notion.access", {
         figma_token: msg.figma_token,
         notion_token: msg.notion_token,
-        notion_database: msg.notion_database
+        notion_database: msg.notion_database,
+        oss: msg.oss
       });
       break;
     }
@@ -61,11 +62,28 @@ figma.ui.onmessage = msg => {
       break;
     }
     case 'node-push': {
-      const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
+      const node: BaseNode = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
       if (node) {
         node.setRelaunchData({
           'edit': msg.name,
         });
+        if (msg.oss && (node.type === 'PAGE' || node.type === 'FRAME')) {
+          node.exportAsync({
+            format: "PNG",
+            constraint: {
+              type: 'SCALE',
+              value: 1
+            }
+          }).then(result => {
+            figma.ui.postMessage({
+              type: "push-export",
+              image: result,
+              name: msg.name,
+              file: msg.file,
+              node: msg.node
+            });
+          })
+        }
       }
       break;
     }
@@ -105,7 +123,7 @@ function isRootFrame(node: BaseNode): node is FrameNode | ComponentNode | Instan
   return node.parent.type == "PAGE";
 }
 
-function getPageRootNode(node: BaseNode) {
+function getPageRootNode(node: BaseNode): BaseNode {
   while (node.parent.type !== "PAGE") {
     node = node.parent;
   }
