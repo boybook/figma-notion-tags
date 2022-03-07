@@ -1,11 +1,3 @@
-// This plugin will open a window to prompt the user to enter a number, and
-// it will then create that many rectangles on the screen.
-
-// This file holds the main code for the plugins. It has access to the *document*.
-// You can access browser APIs in the <script> tag inside "ui.html" which has a
-// full browser environment (see documentation).
-
-// This shows the HTML page in "ui.html".
 figma.showUI(__html__);
 figma.ui.resize(288, 600);
 
@@ -61,29 +53,34 @@ figma.ui.onmessage = msg => {
       figma.notify(msg.msg, msg.options);
       break;
     }
-    case 'node-push': {
+    case 'node-push-oss': {
+      const node: BaseNode = figma.getNodeById(msg.node.id);
+      if (node && node.type !== 'DOCUMENT') {
+        node.exportAsync({
+          format: "PNG",
+          constraint: {
+            type: 'SCALE',
+            value: 1
+          }
+        }).then(result => {
+          figma.ui.postMessage({
+            type: "push-export",
+            image: result,
+            node: msg.node,
+            data: msg.data
+          });
+        });
+      } else {
+        console.error("Can't found the node " + msg.node);
+      }
+      break;
+    }
+    case 'node-push-suc': {
       const node: BaseNode = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
       if (node) {
         node.setRelaunchData({
           'edit': msg.name,
         });
-        if (msg.oss && (node.type === 'PAGE' || node.type === 'FRAME')) {
-          node.exportAsync({
-            format: "PNG",
-            constraint: {
-              type: 'SCALE',
-              value: 1
-            }
-          }).then(result => {
-            figma.ui.postMessage({
-              type: "push-export",
-              image: result,
-              name: msg.name,
-              file: msg.file,
-              node: msg.node
-            });
-          })
-        }
       }
       break;
     }

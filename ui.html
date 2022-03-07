@@ -692,6 +692,7 @@
     .page-node {
         margin: 0;
         padding: 0;
+        background-color: #EDEDED;
     }
 
     .page-node .page-node-bar {
@@ -763,6 +764,14 @@
         align-items: center !important;
     }
 
+    .node-tag-loading p {
+        font-size: 12px;
+        font-weight: 400;
+        color: rgba(0, 0, 0, 0.25);
+        padding: 0;
+        margin: 0 0 8px 0;
+    }
+
     .node-tag-title {
         padding: 12px 16px;
         display: flex;
@@ -782,20 +791,21 @@
         list-style: none;
         display: flex;
         flex-direction: row;
-        align-items: flex-start;
+        align-items: stretch;
         padding: 0 0 8px 16px;
         width: calc(100% - 16px);
         overflow-y: hidden;
     }
 
     .node-tag li {
-        display: inline;
         width: calc(100vw - 32px);
         padding: 0;
         margin-right: 8px;
         /* Inside auto layout */
         flex: none;
         flex-grow: 0;
+        display: flex;
+        align-items: stretch;
     }
 
     .node {
@@ -809,6 +819,7 @@
         overflow: hidden;
         text-decoration: none;
         transition: box-shadow 300ms ease;
+        flex: 1;
     }
 
     .node:hover {
@@ -1099,7 +1110,7 @@
     Vue.component('node', {
         props: ['node'],
         template: `
-          <a class="node" v-bind:href="node.url" target="_blank">
+          <a class="node" v-bind:href="node['properties']['URL']['url']" target="_blank">
             <div class="node-img" v-bind:style="{ background: 'url(' + node.cover['external'].url + ')'}"></div>
             <p> {{ node.properties['Name']['title'][0]['plain_text'] }} </p>
           </a>
@@ -1110,6 +1121,7 @@
         props: ['tagType', 'tag', 'tokens'],
         data() {
             return {
+                loading: true,
                 list: []
             }
         },
@@ -1119,8 +1131,16 @@
                 <tag v-bind:tag="tag" v-bind:removable="false"></tag>
               </div>
               <ul>
-                <li class="node-tag-loading" v-if="list.length === 0">
+                <li class="node-tag-loading" v-if="loading">
                   <loading-icon style="flex: none; order: 0; flex-grow: 0;"></loading-icon>
+                </li>
+                <li class="node-tag-loading" v-if="!loading && list.length === 0">
+                  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M24 38.7773C37.2548 38.7773 48 36.4443 48 33.5663C48 30.6883 37.2548 28.3553 24 28.3553C10.7452 28.3553 0 30.6883 0 33.5663C0 36.4443 10.7452 38.7773 24 38.7773Z" fill="#F5F5F5"/>
+                    <path d="M41.25 19.249L33.6405 10.6865C33.2753 10.1029 32.742 9.75 32.1803 9.75H15.8198C15.258 9.75 14.7247 10.1029 14.3595 10.6858L6.75 19.2497V26.1275H41.25V19.249Z" stroke="#D9D9D9" stroke-width="0.75"/>
+                    <path d="M31.2097 21.6095C31.2097 20.4147 31.9553 19.4284 32.88 19.4276H41.25V32.9294C41.25 34.5098 40.26 35.8051 39.0375 35.8051H8.9625C7.74 35.8051 6.75 34.5091 6.75 32.9294V19.4276H15.12C16.0447 19.4276 16.7902 20.4125 16.7902 21.6073V21.6237C16.7902 22.8185 17.544 23.7833 18.468 23.7833H29.532C30.456 23.7833 31.2097 22.8096 31.2097 21.6148V21.6095V21.6095Z" fill="#FAFAFA" stroke="#D9D9D9" stroke-width="0.75"/>
+                  </svg>
+                  <p>Empty</p>
                 </li>
                 <li v-for="node in list">
                   <node v-bind:node="node"></node>
@@ -1128,30 +1148,40 @@
               </ul>
           </div>
         `,
-        async created() {
-            console.log(this.tag);
-            const result = await fetch('https://notion.boybook.top/database/' + this.tokens.notion_database + "/query", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json;charset=UTF-8',
-                    'notion_token': this.tokens.notion_token,
-                },
-                body: JSON.stringify({
-                    filter: {
-                        property: this.tagType,
-                        multi_select: {
-                            contains: this.tag.name
-                        }
+        async created () {
+            this.loading = true;
+            try {
+                const result0 = await fetch('https://notion.boybook.top/database/' + this.tokens.notion_database + "/query", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json;charset=UTF-8',
+                        'notion_token': this.tokens.notion_token,
                     },
-                    sorts: [
-                        {
-                            property: "上线",
-                            direction: "ascending"
-                        }
-                    ]
-                })
-            }).then(d => d.json());
-            this.list = result['results'];
+                    body: JSON.stringify({
+                        filter: {
+                            property: this.tagType,
+                            multi_select: {
+                                contains: this.tag.name
+                            }
+                        },
+                        sorts: [
+                            {
+                                property: "上线",
+                                direction: "ascending"
+                            }
+                        ]
+                    })
+                });
+                if (result0.ok) {
+                    this.loading = false;
+                    const result = await result0.json();
+                    this.list = result['results'];
+                } else {
+                    notify("[" + result0.status + "] " + result0.statusText, { error: true });
+                }
+            } catch (e) {
+                notify(e, { error: true });
+            }
         }
     })
 
@@ -1166,6 +1196,11 @@
                 </svg>
               </div>
               <p> {{ tagType }} </p>
+<!--              <div v-on:click="refresh">-->
+<!--                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+<!--                  <path d="M13.2048 2.27031L12.3236 2.95938C11.122 1.42344 9.25325 0.4375 7.15482 0.4375C3.53138 0.4375 0.598565 3.36719 0.593878 6.99219C0.58919 10.6203 3.52825 13.5625 7.15482 13.5625C9.98763 13.5625 12.4017 11.7656 13.3204 9.24844C13.3439 9.18281 13.3095 9.10938 13.2439 9.0875L12.3579 8.78281C12.3271 8.77223 12.2932 8.77415 12.2638 8.78816C12.2343 8.80218 12.2114 8.82718 12.2001 8.85781C12.172 8.93594 12.1408 9.01406 12.1079 9.09063C11.8376 9.73125 11.4501 10.3063 10.9564 10.8C10.4666 11.2907 9.88673 11.6822 9.24857 11.9531C8.58763 12.2328 7.88294 12.375 7.15794 12.375C6.43138 12.375 5.72825 12.2328 5.06731 11.9531C4.42853 11.6834 3.84844 11.2917 3.3595 10.8C2.86841 10.3103 2.47729 9.72972 2.20794 9.09063C1.92825 8.42813 1.78607 7.725 1.78607 6.99844C1.78607 6.27188 1.92825 5.56875 2.20794 4.90625C2.47825 4.26563 2.86575 3.69063 3.3595 3.19688C3.85325 2.70313 4.42825 2.31563 5.06731 2.04375C5.72825 1.76406 6.43294 1.62188 7.15794 1.62188C7.8845 1.62188 8.58763 1.76406 9.24857 2.04375C9.88735 2.31351 10.4674 2.70519 10.9564 3.19688C11.1111 3.35156 11.2564 3.51563 11.3908 3.6875L10.4501 4.42188C10.4315 4.43627 10.4173 4.45563 10.4092 4.47772C10.4011 4.49981 10.3995 4.52374 10.4043 4.54676C10.4092 4.56977 10.4205 4.59094 10.4369 4.60782C10.4533 4.6247 10.4741 4.63661 10.497 4.64219L13.2408 5.31406C13.3189 5.33281 13.3954 5.27344 13.3954 5.19375L13.4079 2.36719C13.4064 2.26406 13.2861 2.20625 13.2048 2.27031V2.27031Z" fill="black" fill-opacity="0.85"/>-->
+<!--                </svg>-->
+<!--              </div>-->
             </div>
             <ul>
               <li v-for="tag in tags">
@@ -1247,58 +1282,26 @@
                 this.loading = "Saving...";
                 const tags = tree2Tag(app.node.tags);
 
-                let cover = undefined;
-
-                if (app.tokens.oss) {
-                    cover = app.tokens.oss + app.file + "_" + app.node.id + ".png";
-                }
-
-                const result0 = await fetch('https://notion.boybook.top/node/push/' + app.file + "/" + app.node.id, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json;charset=UTF-8',
-                        'figma_token': this.tokens.figma_token,
-                        'notion_token': this.tokens.notion_token,
-                        'notion_database': this.tokens.notion_database
-                    },
-                    body: JSON.stringify({
+                if (app.tokens.oss) { // UI点Save -> 插件导出图片 -> UI中上传截图到OSS -> UI中最终上传到notion
+                    this.loading = "Exporting the cover..."
+                    const cover = app.tokens.oss + (app.tokens.oss.endsWith("/") ? "" : "/") + app.file + "_" + app.node.id + ".png";
+                    parent.postMessage({
+                        pluginMessage: {
+                            type: 'node-push-oss',
+                            node: this.node, // 选中的目标node（用于插件代码中定位Node并且导出）
+                            data: { // 最终要post的数据
+                                name: app.node.name,
+                                tags: tags,
+                                cover: cover
+                            }
+                        }
+                    }, '*');
+                } else {
+                    await pushNodeFinal({
                         name: app.node.name,
-                        tags: tags,
-                        cover: cover
+                        tags: tags
                     })
-                });
-                if (!result0.ok) {
-                    app.tokens_setting_show = true;
-                    app.tokens_setting_intro = 'Something wrong: [' + result0.status + "] " + result0.statusText;
-                    return;
                 }
-                const result = await result0.json();
-                parent.postMessage({
-                    pluginMessage: {
-                        type: 'node-push',
-                        name: this.node.name,
-                        file: this.file,
-                        node: this.node.id,
-                        oss: this.tokens.oss
-                    }
-                }, '*');
-                console.log(result);
-                if (result.result.length > 0) {
-                    this.node.notion_id = result.result[0].id;
-                    this.node.notion_url = result.result[0].url;
-                }
-                if (this.node.need_reload_tags) {
-                    this.loading = "Loading Tags...";
-                    await loadTags(this.tokens);
-                    await loadNode(this.file, this.figma_node);
-                }
-                this.loading = undefined;
-                notify(this.node.name + " Push success!");
-                parent.postMessage({
-                    pluginMessage: {
-                        type: 'loading-finish'
-                    }
-                }, '*');
             },
             deleteNode: async function (event) {
                 this.loading = "Deleting...";
@@ -1528,54 +1531,70 @@
             app.tokens = message.tokens;
             app.tokens_inited = true;
         }
-        if (message.type === 'init') {
-            app.figma_node = message.node;
-            app.tokens_setting_show = true;
-        } else if (message.type === 'normal') {
-            app.figma_node = message.node;
-            app.tokens_setting_show = false;
-            try {
-                await loadTags(app.tokens);
-            } catch (e) {
-                console.error(e);
-                app.tokens_setting_show = true;
-                app.tokens_inited = false;
-                app.tokens_setting_intro = 'Something wrong: [' + e.status + "] " + e.statusText;
-                return;
-            }
-            await loadNode(message.file, message.node);
-        } else if (message.type === 'selectionchange') {
-            if (app.loading) return; // Loading 时不接收selectionchange事件，但是会在loading完成后，主动请求刷新
-            if (!app.tokens_inited) return;
-            if (!app.figma_node || message.node.id !== app.figma_node.id) {
+        switch (message.type) {
+            case 'init': {
                 app.figma_node = message.node;
-                await loadNode(message.file, message.node);
-                parent.postMessage({
-                    pluginMessage: {
-                        type: 'loading-finish'
-                    }
-                }, '*');
+                app.tokens_setting_show = true;
+                break;
             }
-        } else if (message.type === 'push-export') {
-            try {
-                const result = await fetch(app.tokens.oss + message.file + "_" + message.node + ".png",
-                    {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'image/png'
-                        },
-                        body: message.image
-                    }
-                );
-                if (result.ok) {
-                    console.log("OSS upload success!")
-                } else {
-                    console.error("OSS upload failed.");
-                    console.log(result);
+            case 'normal': {
+                app.figma_node = message.node;
+                app.tokens_setting_show = false;
+                try {
+                    await loadTags(app.tokens);
+                } catch (e) {
+                    console.error(e);
+                    app.tokens_setting_show = true;
+                    app.tokens_inited = false;
+                    app.tokens_setting_intro = 'Something wrong: [' + e.status + "] " + e.statusText;
+                    return;
                 }
-            } catch (e) {
-                console.error("OSS upload failed.");
-                console.error(e);
+                await loadNode(message.file, message.node);
+                break;
+            }
+            case 'selectionchange': {
+                if (app.loading) return; // Loading 时不接收selectionchange事件，但是会在loading完成后，主动请求刷新
+                if (!app.tokens_inited) return;
+                if (!app.figma_node || message.node.id !== app.figma_node.id) {
+                    app.figma_node = message.node;
+                    await loadNode(message.file, message.node);
+                    parent.postMessage({
+                        pluginMessage: {
+                            type: 'loading-finish'
+                        }
+                    }, '*');
+                }
+                break;
+            }
+            case 'push-export': {
+                try {
+                    app.loading = "Uploading the cover...";
+                    const result = await fetch(message.data.cover,
+                        {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'image/png'
+                            },
+                            body: message.image
+                        }
+                    );
+                    if (result.ok) {
+                        console.log("OSS upload success!");
+                        app.loading = "Saving the node...";
+                        await pushNodeFinal(message.node, message.data);
+                    } else {
+                        console.error("OSS upload failed.");
+                        notify("OSS upload failed.", { error: true });
+                        console.log(result);
+                        app.loading = undefined;
+                    }
+                } catch (e) {
+                    console.error("Node upload failed.");
+                    notify("Node upload failed.", { error: true });
+                    console.error(e);
+                    app.loading = undefined;
+                }
+                break;
             }
         }
     }
@@ -1586,6 +1605,48 @@
                 type: 'notify',
                 msg: msg,
                 options: options
+            }
+        }, '*');
+    }
+
+    const pushNodeFinal = async (node, data) => {
+        const result0 = await fetch('https://notion.boybook.top/node/push/' + app.file + "/" + app.node.id, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=UTF-8',
+                'figma_token': app.tokens.figma_token,
+                'notion_token': app.tokens.notion_token,
+                'notion_database': app.tokens.notion_database
+            },
+            body: JSON.stringify(data)
+        });
+        if (!result0.ok) {
+            app.tokens_setting_show = true;
+            app.tokens_setting_intro = 'Something wrong: [' + result0.status + "] " + result0.statusText;
+            return;
+        }
+        const result = await result0.json();
+        parent.postMessage({
+            pluginMessage: {
+                type: 'node-push-suc',
+                name: node.name
+            }
+        }, '*');
+        console.log(result);
+        if (result.result.length > 0) {
+            app.node.notion_id = result.result[0].id;
+            app.node.notion_url = result.result[0].url;
+        }
+        if (node.need_reload_tags) {
+            app.loading = "Loading Tags...";
+            await loadTags(app.tokens);
+            await loadNode(app.file, app.figma_node);
+        }
+        app.loading = undefined;
+        notify(node.name + " Push success!");
+        parent.postMessage({
+            pluginMessage: {
+                type: 'loading-finish'
             }
         }, '*');
     }
