@@ -226,6 +226,9 @@ function test(node) {
 figma.on("selectionchange", () => {
     selectionChange();
 });
+figma.on("currentpagechange", () => {
+    selectionChange();
+});
 function selectionChange() {
     const file = figma.fileKey;
     const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
