@@ -1,12 +1,16 @@
 figma.showUI(__html__);
 figma.ui.resize(288, 600);
 
-figma.clientStorage.getAsync("figma-notion.access").then(data => {
+(async () => {
   const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
-  if (data && data.figma_token && data.notion_token && data.notion_database) {
+  const tokens = await figma.clientStorage.getAsync("figma-notion.access");
+  const cached_tag_types = await figma.clientStorage.getAsync("figma-notion.tag-types");
+  console.log(tokens);
+  if (tokens && tokens.figma_token && tokens.notion_token && tokens.notion_database) {
     figma.ui.postMessage({
       type: "normal",
-      tokens: data,
+      tokens: tokens,
+      cached_tag_types: cached_tag_types,
       file: figma.fileKey,
       node: {
         frame: node.type !== 'PAGE',
@@ -25,7 +29,7 @@ figma.clientStorage.getAsync("figma-notion.access").then(data => {
       }
     });
   }
-});
+})();
 
 setInterval(() => {
   for (let el of figma.currentPage.selection) {
@@ -207,19 +211,31 @@ figma.ui.onmessage = msg => {
           group.name = root.name;
           page.appendChild(group);
           page.setPluginData(msg.node.id, group.id);
-        }).catch(e => figma.notify("Font family not found!", { error: true }));
+        }).catch(e => {
+          figma.notify("Font family not found!", { error: true });
+          console.log(e);
+        });
       }
       break;
     }
     case 'node-delete': {
-      const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
+      const node: BaseNode = figma.getNodeById(msg.node.id);
       if (node) {
         node.setRelaunchData({});
+        const page = getPageNode(node);
+        const tileNodeId = page.getPluginData(msg.node.id);
+        if (tileNodeId) {
+          figma.getNodeById(tileNodeId)?.remove();
+        }
       }
       break;
     }
     case 'loading-finish': {
       selectionChange();
+      break;
+    }
+    case 'save-tags-type-cache': {
+      figma.clientStorage.setAsync("figma-notion.tag-types", msg['tags']).then();
       break;
     }
   }

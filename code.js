@@ -1,11 +1,24 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 figma.showUI(__html__);
 figma.ui.resize(288, 600);
-figma.clientStorage.getAsync("figma-notion.access").then(data => {
+(() => __awaiter(this, void 0, void 0, function* () {
     const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
-    if (data && data.figma_token && data.notion_token && data.notion_database) {
+    const tokens = yield figma.clientStorage.getAsync("figma-notion.access");
+    const cached_tag_types = yield figma.clientStorage.getAsync("figma-notion.tag-types");
+    console.log(tokens);
+    if (tokens && tokens.figma_token && tokens.notion_token && tokens.notion_database) {
         figma.ui.postMessage({
             type: "normal",
-            tokens: data,
+            tokens: tokens,
+            cached_tag_types: cached_tag_types,
             file: figma.fileKey,
             node: {
                 frame: node.type !== 'PAGE',
@@ -25,7 +38,7 @@ figma.clientStorage.getAsync("figma-notion.access").then(data => {
             }
         });
     }
-});
+}))();
 setInterval(() => {
     for (let el of figma.currentPage.selection) {
         const tileNodeId = figma.currentPage.getPluginData(el.id);
@@ -84,7 +97,7 @@ const tagColors = {
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.
 figma.ui.onmessage = msg => {
-    var _a;
+    var _a, _b;
     switch (msg.type) {
         case 'init': {
             figma.clientStorage.setAsync("figma-notion.access", {
@@ -203,19 +216,31 @@ figma.ui.onmessage = msg => {
                     group.name = root.name;
                     page.appendChild(group);
                     page.setPluginData(msg.node.id, group.id);
-                }).catch(e => figma.notify("Font family not found!", { error: true }));
+                }).catch(e => {
+                    figma.notify("Font family not found!", { error: true });
+                    console.log(e);
+                });
             }
             break;
         }
         case 'node-delete': {
-            const node = figma.currentPage.selection.length > 0 ? getPageRootNode(figma.currentPage.selection[0]) : figma.currentPage;
+            const node = figma.getNodeById(msg.node.id);
             if (node) {
                 node.setRelaunchData({});
+                const page = getPageNode(node);
+                const tileNodeId = page.getPluginData(msg.node.id);
+                if (tileNodeId) {
+                    (_b = figma.getNodeById(tileNodeId)) === null || _b === void 0 ? void 0 : _b.remove();
+                }
             }
             break;
         }
         case 'loading-finish': {
             selectionChange();
+            break;
+        }
+        case 'save-tags-type-cache': {
+            figma.clientStorage.setAsync("figma-notion.tag-types", msg['tags']).then();
             break;
         }
     }
