@@ -1881,16 +1881,18 @@
             return;
         }
         const result = await result0.json();
+        if (result.result.length > 0) {
+            app.node.notion_id = result.result[0].id;
+            app.node.notion_url = result.result[0].url;
+            node.notion_id = result.result[0].id;
+            node.notion_url = result.result[0].url;
+        }
         parent.postMessage({
             pluginMessage: {
                 type: 'node-push-suc',
                 node: node
             }
         }, '*');
-        if (result.result.length > 0) {
-            app.node.notion_id = result.result[0].id;
-            app.node.notion_url = result.result[0].url;
-        }
         if (node.need_reload_tags) {
             app.loading = "Loading Tags...";
             await loadTags(app.tokens, Object.keys(app.full_tags));
