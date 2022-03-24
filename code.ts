@@ -92,6 +92,10 @@ const tagColors = {
 // posted message.
 figma.ui.onmessage = msg => {
   switch (msg.type) {
+    case 'resize': {
+      figma.ui.resize(msg.width, msg.height);
+      break;
+    }
     case 'init': {
       figma.clientStorage.setAsync("figma-notion.access", {
         figma_token: msg.figma_token,

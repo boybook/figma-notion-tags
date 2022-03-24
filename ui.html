@@ -531,11 +531,7 @@
         transform: rotate(90deg);
     }
 
-    .tree .sub-type {
-        padding-bottom: 8px;
-    }
-
-    .tree .sub-type .sub-type-title {
+    .sub-type-title {
         color: rgba(0, 0, 0, .45);
         padding: 0 0 4px 24px;
         font-size: 12px;
@@ -546,7 +542,7 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        padding: 0;
+        /*padding: 0;*/
         margin: 0;
         /* Inside auto layout */
         flex: none;
@@ -555,9 +551,14 @@
         flex-grow: 0;
     }
 
-    .tree>ul>li>ul>li {
+    .sub-type {
+        padding-bottom: 8px;
+        padding-left: 0;
+    }
+
+    .tree-tag {
         /* Auto layout */
-        display: flex;
+        display: flex !important;
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
@@ -573,7 +574,7 @@
         border-radius: 3px;
     }
 
-    .tree>ul>li>ul>li:hover {
+    .tree-tag:hover {
         background-color: rgba(0, 0, 0, 0.05);
     }
 
@@ -756,11 +757,6 @@
         white-space: nowrap;
     }
 
-    .page-node ul {
-        padding: 42px 0 16px 0;
-        background-color: #EDEDED;
-    }
-
     .node-tag {
 
     }
@@ -809,7 +805,8 @@
     }
 
     .node-tag li {
-        width: calc(100vw - 32px);
+        /*width: calc(100vw - 32px);*/
+        width: 256px;
         padding: 0;
         margin-right: 8px;
         /* Inside auto layout */
@@ -872,7 +869,7 @@
     }
 
     .dropdown .dropdown-entry {
-        padding: 10px;
+        padding: 8px;
     }
 
     .menu {
@@ -909,6 +906,39 @@
         animation-duration: 300ms;
     }
 
+    .page-node-wrapper-tree {
+        width: 176px;
+        position: fixed;
+        left: 0;
+        top: 35px;
+        bottom: 0;
+        background: white;
+        margin: 0;
+        padding: 8px 0;
+        overflow: scroll;
+    }
+
+    .page-node-wrapper-tree>li {
+        display: block;
+    }
+
+    .page-node-wrapper-tree .sub-type-title {
+        padding-left: 16px;
+    }
+
+    .page-node-wrapper-tree .tree-tag {
+        padding-left: 16px;
+    }
+
+    .page-node-wrapper-blocks {
+        flex: none;
+        order: 1;
+        flex-grow: 1;
+        margin: 0 0 0 176px;
+        padding: 42px 0 16px 0;
+        background-color: #EDEDED;
+    }
+
 </style>
 
 <div id="app">
@@ -917,7 +947,7 @@
             v-bind:tag-type="view"
             v-bind:tags="full_tags[view]"
             v-bind:tokens="tokens"
-            v-on:close="view = undefined"
+            v-on:close="closeView()"
     >
     </page-node>
     <token-settings
@@ -1090,8 +1120,8 @@
                     <li v-for="(childTags, childTagType) in tagType.tags" v-if="tagType.open">
                         <ul v-if="childTags.length > 0" class="sub-type">
                             <div class="sub-type-title" v-if="childTagType"> {{ childTagType }} </div>
-                            <li v-bind:class="{ 'li-selected': tag.check }" v-for="tag in childTags" v-on:click="tag.check = !tag.check">
-                                <span class="tag" v-bind:class="'tag-' + tag.color"> {{ tag.name }} </span>
+                            <li class="tree-tag" v-bind:class="{ 'li-selected': tag.check }" v-for="tag in childTags" v-on:click="tag.check = !tag.check">
+                                <tag :tag="tag" :removable="false"></tag>
                                 <svg v-if="tag.check" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M13.2507 1.96875H12.1586C12.0054 1.96875 11.8601 2.03906 11.7664 2.15937L5.32418 10.3203L2.23512 6.40625C2.18839 6.34692 2.12882 6.29895 2.0609 6.26593C1.99297 6.23292 1.91845 6.21572 1.84293 6.21563H0.750741C0.646054 6.21563 0.588241 6.33594 0.652304 6.41719L4.93199 11.8391C5.13199 12.0922 5.51637 12.0922 5.71793 11.8391L13.3492 2.16875C13.4132 2.08906 13.3554 1.96875 13.2507 1.96875V1.96875Z" fill="black" fill-opacity="0.65"/>
                                 </svg>
@@ -1308,16 +1338,28 @@
                   style="padding: 0 !important;"
               > </dropdown>
             </div>
-            <ul>
-              <li v-for="tag in tags">
+
+            <ul class="page-node-wrapper-tree">
+              <li v-for="(childTags, childTagType) in treeTags">
+                <ul v-if="childTags.length > 0" class="sub-type">
+                  <div class="sub-type-title" v-if="childTagType"> {{ childTagType }} </div>
+                  <li class="tree-tag" v-for="tag in childTags" v-on:click="scrollTo(tag)">
+                    <tag :tag="tag" :removable="false"></tag>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+            <ul class="page-node-wrapper-blocks" id="page-node-wrapper-blocks">
+              <li v-bind:id="'anchor-' + tag.name" v-for="tag in Object.values(this.treeTags).flat()">
                 <node-tag v-bind:tag-type="tagType" v-bind:tag="tag" v-bind:tokens="tokens"></node-tag>
               </li>
             </ul>
           </div>
         `,
-        data() {
+        data () {
             return {
-                active: false
+                active: false,
+                treeTags: {}
             }
         },
         methods: {
@@ -1331,6 +1373,20 @@
                 console.log("toggleDropDown");
                 this.active = !this.active
             },
+            scrollTo(tag) {
+                const el = document.getElementById('anchor-' + tag.name);
+                document.body.scrollTo({
+                    top: document.body.scrollTop + el.getBoundingClientRect().y - 40,
+                    behavior: 'smooth'
+                });
+            }
+        },
+        async created () {
+            this.treeTags = tagType2TreeTags(this.tags);
+            document.body.scrollTo({
+                top: 0,
+                behavior: 'auto'
+            });
         }
     });
 
@@ -1346,7 +1402,7 @@
                   test1
                 </menu-item>
 
-                <menu-item action="test3" @click="handler">
+                <menu-item action="test2" @click="handler">
                   test2
                 </menu-item>
 
@@ -1592,6 +1648,23 @@
             },
             openView: async function (tagType) {
                 this.view = tagType;
+                parent.postMessage({
+                    pluginMessage: {
+                        type: 'resize',
+                        width: 728,
+                        height: 600
+                    }
+                }, '*');
+            },
+            closeView: function () {
+                this.view = undefined;
+                parent.postMessage({
+                    pluginMessage: {
+                        type: 'resize',
+                        width: 288,
+                        height: 600
+                    }
+                }, '*');
             }
         }
     });
@@ -1703,48 +1776,24 @@
 
     /**
      * @param full_tags Tags config
-     * @param node_tags Tags data from Notion API
+     * @param node_tags Tags data from Notion API (用于在切换时，保持分组的打开状态)
      * @returns {*[]} Tags data for UI
      */
     const tags2Tree = (full_tags, node_tags) => {
         const tagsArray = [];
         for (let tagType in full_tags) {
-            // type
-            const tags = {
-                '': []  // 把默认组放在最前面
-            };
-            for (let tag of full_tags[tagType]) {
-                const tagNameSubs = tag.name.replaceAll(' ', '').split('/', 2);
-                const childTag = tagNameSubs.length > 1 ? tagNameSubs[0] : '';
-                if (!tags[childTag]) {
-                    tags[childTag] = [];
-                }
-                const treeTag = {
-                    check: false,
-                    color: tag.color,
-                    id: tag.id,
-                    name: tag.name
-                };
-                tags[childTag].push(treeTag);
-            }
-            for (let tagKey in tags['']) {
-                if (tags[tags[''][tagKey].name]) {
-                    tags[tags[''][tagKey].name].unshift(tags[''][tagKey]);
-                    tags[''].splice(tagKey, 1);
-                }
-            }
             // tagType
             let open = true;
             if (app.node && app.node.tags && app.node.tags.length > 0) {
                 app.node.tags.filter(e => e.type === tagType).forEach(e => open = e.open);
             }
-            let entry = {
+            const entry = {
                 type: tagType,
                 open: open, //根据现在有的收起展开
                 hover: false,
                 adding: false,
                 addingText: '',
-                tags: tags
+                tags: tagType2TreeTags(full_tags[tagType])
             };
             if (Object.keys(node_tags).length > 0) {
                 for (let childTag in entry.tags) {
@@ -1761,6 +1810,35 @@
             tagsArray.push(entry);
         }
         return tagsArray;
+    }
+
+    const tagType2TreeTags = (fullTagsTypeEntries) => {
+        // type
+        const tags = {
+            '': []  // 把默认组放在最前面
+        };
+        for (let tag of fullTagsTypeEntries) {
+            const tagNameSubs = tag.name.replaceAll(' ', '').split('/', 2);
+            const childTag = tagNameSubs.length > 1 ? tagNameSubs[0] : '';
+            if (!tags[childTag]) {
+                tags[childTag] = [];
+            }
+            const treeTag = {
+                check: false,
+                color: tag.color,
+                id: tag.id,
+                name: tag.name
+            };
+            tags[childTag].push(treeTag);
+        }
+        for (let tagKey in tags['']) {
+            if (tags[tags[''][tagKey].name]) {
+                tags[tags[''][tagKey].name].unshift(tags[''][tagKey]);
+                tags[''].splice(tagKey, 1);
+            }
+        }
+
+        return tags;
     }
 
     const tree2Tag = (tree) => {
